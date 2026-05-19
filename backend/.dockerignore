@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+venv/
+.env
+
+.git/
+.idea/
+.vscode/
+
+test.db
+
+alembic/versions/__pycache__

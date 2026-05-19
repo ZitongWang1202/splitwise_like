@@ -1,0 +1,18 @@
+from fastapi import FastAPI
+from app.api.routes.auth import router as auth_router
+from app.api.routes.users import router as users_router
+from app.api.routes.groups import router as groups_router
+from app.api.routes.expenses import router as expenses_router
+from app.api.routes.balances import router as balances_router
+
+app = FastAPI()
+
+@app.get("/")
+def root():
+    return {"message": "Expense Manager API"}
+
+app.include_router(auth_router)
+app.include_router(users_router)
+app.include_router(groups_router)
+app.include_router(expenses_router)
+app.include_router(balances_router)
