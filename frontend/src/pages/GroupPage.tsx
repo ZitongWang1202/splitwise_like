@@ -2,10 +2,35 @@ import { useEffect, useState } from "react"
 
 import { useParams } from "react-router-dom"
 
-import apiClient from "../api/client"
+import {
+  getGroupBalances,
+  getGroupSettlements,
+} from "../api/balances"
 
-import type { Balance } from "../types/balance"
-import type { Settlement } from "../types/settlement"
+import {
+  createExpense as createExpenseApi,
+} from "../api/expenses"
+
+import { getCurrentUser } from "../api/users"
+
+import type { Balance, BalancesResponse } from "../types/balance"
+import type { Settlement, SettlementResponse } from "../types/settlement"
+
+function parseBalances(data: BalancesResponse): Balance[] {
+  return Object.entries(data).map(([user_id, balance]) => ({
+    user_id,
+    email: user_id,
+    balance: Number(balance),
+  }))
+}
+
+function parseSettlements(data: SettlementResponse[]): Settlement[] {
+  return data.map((settlement) => ({
+    from_user: settlement.from_user_id,
+    to_user: settlement.to_user_id,
+    amount: Number(settlement.amount),
+  }))
+}
 
 export default function GroupPage() {
 
@@ -25,32 +50,34 @@ export default function GroupPage() {
 
   async function fetchBalances() {
 
-    const response = await apiClient.get(
-      `/groups/${groupId}/balances`
-    )
+    const data = await getGroupBalances(groupId!)
 
-    setBalances(response.data)
+    setBalances(parseBalances(data))
   }
 
   async function fetchSettlements() {
 
-    const response = await apiClient.get(
-      `/groups/${groupId}/settlements`
-    )
+    const data = await getGroupSettlements(groupId!)
 
-    setSettlements(response.data)
+    setSettlements(parseSettlements(data))
   }
 
   async function createExpense() {
 
-    await apiClient.post(
-      "/expenses",
-      {
-        group_id: groupId,
-        description,
-        amount: Number(amount),
-      }
-    )
+    const expenseAmount = Number(amount)
+    const user = await getCurrentUser()
+
+    await createExpenseApi({
+      group_id: groupId!,
+      description,
+      amount: expenseAmount,
+      participants: [
+        {
+          user_id: user.id,
+          owed_amount: expenseAmount,
+        },
+      ],
+    })
 
     setDescription("")
     setAmount("")

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import apiClient from "../api/client"
+import { register as registerApi } from "../api/auth"
 import { useNavigate } from "react-router-dom"
 
 export default function RegisterPage() {
@@ -8,10 +8,7 @@ export default function RegisterPage() {
   const navigate = useNavigate()
 
   async function handleRegister() {
-    await apiClient.post("/auth/register", {
-      email,
-      password,
-    })
+    await registerApi(email, password)
 
     navigate("/login")
   }

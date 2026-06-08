@@ -3,7 +3,6 @@ import {
     useContext,
     useState,
     type ReactNode,
-    useEffect,
   } from "react"
   
   
@@ -20,15 +19,9 @@ import {
   
   
   export function AuthProvider({ children }: { children: ReactNode }) {
-    const [token, setToken] = useState<string | null>(null)
-  
-    // Load token from storage on startup
-    useEffect(() => {
-      const storedToken = localStorage.getItem("token")
-      if (storedToken) {
-        setToken(storedToken)
-      }
-    }, [])
+    const [token, setToken] = useState<string | null>(() =>
+      localStorage.getItem("token")
+    )
   
     function login(token: string) {
       setToken(token)

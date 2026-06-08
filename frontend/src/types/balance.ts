@@ -3,3 +3,5 @@ export type Balance = {
     email: string
     balance: number
   }
+
+export type BalancesResponse = Record<string, string | number>

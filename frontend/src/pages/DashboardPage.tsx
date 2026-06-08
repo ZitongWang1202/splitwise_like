@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react"
 
-import apiClient from "../api/client"
+import {
+  getGroups,
+  createGroup as createGroupApi,
+} from "../api/groups"
 
 import type { Group } from "../types/group"
 
@@ -15,21 +18,16 @@ export default function DashboardPage() {
 
   async function fetchGroups() {
 
-    const response = await apiClient.get(
-      "/groups"
-    )
+    const data = await getGroups()
 
-    setGroups(response.data)
+    setGroups(data)
   }
 
   async function createGroup() {
 
-    await apiClient.post(
-      "/groups",
-      {
-        name: newGroupName,
-      }
-    )
+    await createGroupApi({
+      name: newGroupName,
+    })
 
     setNewGroupName("")
 

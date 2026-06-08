@@ -1,5 +1,5 @@
 import { useState } from "react"
-import apiClient from "../api/client"
+import { login as loginApi } from "../api/auth"
 import { useAuth } from "../contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
 
@@ -11,14 +11,9 @@ export default function LoginPage() {
   const navigate = useNavigate()
 
   async function handleLogin() {
-    const response = await apiClient.post("/auth/login", {
-      email,
-      password,
-    })
+    const data = await loginApi(email, password)
 
-    const token = response.data.access_token
-
-    login(token)
+    login(data.access_token)
 
     navigate("/")
   }
