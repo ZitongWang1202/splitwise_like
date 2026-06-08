@@ -13,8 +13,11 @@ export default function DashboardPage() {
 
   const [groups, setGroups] = useState<Group[]>([])
 
-  const [newGroupName, setNewGroupName] =
-    useState("")
+  const [newGroupName, setNewGroupName] = useState("")
+
+  const [loading, setLoading] = useState(false)
+
+  const [error, setError] = useState("")
 
   async function fetchGroups() {
 
@@ -25,13 +28,36 @@ export default function DashboardPage() {
 
   async function createGroup() {
 
-    await createGroupApi({
-      name: newGroupName,
-    })
+    if (!newGroupName.trim()) {
+      setError("Group name is required")
+      return
+    }
 
-    setNewGroupName("")
+    try {
 
-    fetchGroups()
+      setError("")
+      setLoading(true)
+
+      await createGroupApi({
+        name: newGroupName,
+      })
+
+      setNewGroupName("")
+
+      await fetchGroups()
+
+    } catch {
+
+      setError("Failed to create group")
+
+    } finally {
+
+      setLoading(false)
+
+    }
+
+
+
   }
 
   useEffect(() => {
@@ -47,20 +73,39 @@ export default function DashboardPage() {
 
       <div className="mb-6">
 
+        {
+          error && (
+            <p className="text-red-600 mb-2">
+              {error}
+            </p>
+          )
+        }
+
         <input
           className="border p-2 mr-2"
           placeholder="Group name"
           value={newGroupName}
+          disabled={loading}
           onChange={(e) =>
             setNewGroupName(e.target.value)
           }
         />
 
         <button
-          className="border px-4 py-2"
+          className="
+            border
+            px-4
+            py-2
+            disabled:opacity-50
+          "
           onClick={createGroup}
+          disabled={loading}
         >
-          Create Group
+          {
+            loading
+              ? "Creating..."
+              : "Create Group"
+          }
         </button>
 
       </div>
