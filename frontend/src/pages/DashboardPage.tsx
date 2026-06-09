@@ -11,6 +11,8 @@ import { Link } from "react-router-dom"
 import Button from "../components/Button"
 import Input from "../components/Input"
 import ErrorMessage from "../components/ErrorMessage"
+import PageContainer from "../components/PageContainer"
+import Card from "../components/Card"
 
 export default function DashboardPage() {
 
@@ -68,13 +70,13 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="p-8">
+    <PageContainer>
 
       <h1 className="text-3xl font-bold mb-6">
         Dashboard
       </h1>
 
-      <div className="mb-6">
+      <div className="mb-8 space-y-2">
 
         <ErrorMessage message={error} />
 
@@ -100,21 +102,35 @@ export default function DashboardPage() {
 
       </div>
 
-      <div className="space-y-2">
+      <div>
 
-        {groups.map((group) => (
-          <div
-            key={group.id}
-            className="border p-4"
-          >
-            <Link to={`/groups/${group.id}`}>
-              {group.name}
-            </Link>
-          </div>
-        ))}
+        <h2 className="text-2xl font-bold mb-4">
+          Your Groups
+        </h2>
+
+        <div className="space-y-2">
+
+          {groups.length === 0 && (
+            <p>
+              No groups yet.
+            </p>
+          )}
+
+          {groups.map((group) => (
+            <Card key={group.id}>
+              <Link
+                to={`/groups/${group.id}`}
+                className="no-underline text-inherit hover:opacity-70"
+              >
+                {group.name}
+              </Link>
+            </Card>
+          ))}
+
+        </div>
 
       </div>
 
-    </div>
+    </PageContainer>
   )
 }

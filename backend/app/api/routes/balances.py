@@ -11,11 +11,19 @@ from app.api.dependencies import (
 
 from app.models.user import User
 
+from app.repositories.user_repository import UserRepository
+
 from app.services.balance_service import (
     BalanceService
 )
 
 router = APIRouter()
+
+
+def _user_label(db: Session, user_id: UUID) -> str:
+    user = UserRepository.get_by_id(db, user_id)
+    return user.email if user else str(user_id)
+
 
 @router.get("/groups/{group_id}/balances")
 def get_group_balances(
@@ -27,7 +35,10 @@ def get_group_balances(
         db,
         group_id
     )
-    return balances
+    return {
+        _user_label(db, user_id): balance
+        for user_id, balance in balances.items()
+    }
 
 @router.get(
     "/groups/{group_id}/settlements"
@@ -51,4 +62,17 @@ def get_group_settlements(
         )
     )
 
-    return settlements
+    return [
+        {
+            **settlement,
+            "from_email": _user_label(
+                db,
+                settlement["from_user_id"],
+            ),
+            "to_email": _user_label(
+                db,
+                settlement["to_user_id"],
+            ),
+        }
+        for settlement in settlements
+    ]

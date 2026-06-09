@@ -18,6 +18,8 @@ import type { Settlement, SettlementResponse } from "../types/settlement"
 import Button from "../components/Button"
 import Input from "../components/Input"
 import ErrorMessage from "../components/ErrorMessage"
+import PageContainer from "../components/PageContainer"
+import Card from "../components/Card"
 
 function parseBalances(data: BalancesResponse): Balance[] {
   return Object.entries(data).map(([user_id, balance]) => ({
@@ -29,8 +31,8 @@ function parseBalances(data: BalancesResponse): Balance[] {
 
 function parseSettlements(data: SettlementResponse[]): Settlement[] {
   return data.map((settlement) => ({
-    from_user: settlement.from_user_id,
-    to_user: settlement.to_user_id,
+    from_user: settlement.from_email,
+    to_user: settlement.to_email,
     amount: Number(settlement.amount),
   }))
 }
@@ -130,7 +132,7 @@ export default function GroupPage() {
   }, [])
 
   return (
-    <div className="p-8">
+    <PageContainer>
 
       <h1 className="text-3xl font-bold mb-6">
         Group Details
@@ -179,13 +181,16 @@ export default function GroupPage() {
 
         <div className="space-y-2">
 
+          {balances.length === 0 && (
+            <p>
+              No balances yet.
+            </p>
+          )}
+
           {balances.map((balance) => (
-            <div
-              key={balance.user_id}
-              className="border p-3"
-            >
+            <Card key={balance.user_id}>
               {balance.email}: {balance.balance}
-            </div>
+            </Card>
           ))}
 
         </div>
@@ -200,23 +205,26 @@ export default function GroupPage() {
 
         <div className="space-y-2">
 
+          {settlements.length === 0 && (
+            <p>
+              No settlements yet.
+            </p>
+          )}
+
           {settlements.map((settlement, index) => (
-            <div
-              key={index}
-              className="border p-3"
-            >
+            <Card key={index}>
               {settlement.from_user}
               {" → "}
               {settlement.to_user}
               {": "}
               {settlement.amount}
-            </div>
+            </Card>
           ))}
 
         </div>
 
       </div>
 
-    </div>
+    </PageContainer>
   )
 }

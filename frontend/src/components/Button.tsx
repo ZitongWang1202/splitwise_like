@@ -19,10 +19,11 @@ export default function Button({
       onClick={onClick}
       disabled={disabled}
       className="
+        rounded-lg
         border
         px-4
-        py-2
-        rounded
+        py-3
+        font-medium
         disabled:opacity-50
       "
     >
