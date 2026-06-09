@@ -15,6 +15,9 @@ import { getCurrentUser } from "../api/users"
 
 import type { Balance, BalancesResponse } from "../types/balance"
 import type { Settlement, SettlementResponse } from "../types/settlement"
+import Button from "../components/Button"
+import Input from "../components/Input"
+import ErrorMessage from "../components/ErrorMessage"
 
 function parseBalances(data: BalancesResponse): Balance[] {
   return Object.entries(data).map(([user_id, balance]) => ({
@@ -135,16 +138,9 @@ export default function GroupPage() {
 
       <div className="mb-8 space-y-2">
 
-        {
-          error && (
-            <p className="text-red-600">
-              {error}
-            </p>
-          )
-        }
+        <ErrorMessage message={error} />
 
-        <input
-          className="border p-2 block"
+        <Input
           placeholder="Description"
           value={description}
           disabled={loading}
@@ -153,8 +149,7 @@ export default function GroupPage() {
           }
         />
 
-        <input
-          className="border p-2 block"
+        <Input
           placeholder="Amount"
           value={amount}
           disabled={loading}
@@ -163,13 +158,7 @@ export default function GroupPage() {
           }
         />
 
-        <button
-          className="
-            border
-            px-4
-            py-2
-            disabled:opacity-50
-          "
+        <Button
           onClick={createExpense}
           disabled={loading}
         >
@@ -178,7 +167,7 @@ export default function GroupPage() {
               ? "Adding..."
               : "Add Expense"
           }
-        </button>
+        </Button>
 
       </div>
 

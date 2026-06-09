@@ -1,6 +1,9 @@
 import { useState } from "react"
 import { register as registerApi } from "../api/auth"
 import { useNavigate } from "react-router-dom"
+import Button from "../components/Button"
+import Input from "../components/Input"
+import ErrorMessage from "../components/ErrorMessage"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
@@ -40,22 +43,16 @@ export default function RegisterPage() {
     <div>
       <h1>Register</h1>
 
-      {
-        error && (
-          <p className="text-red-600">
-            {error}
-          </p>
-        )
-      }
+      <ErrorMessage message={error} />
 
-      <input
+      <Input
         disabled={loading}
         placeholder="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
 
-      <input
+      <Input
         disabled={loading}
         placeholder="password"
         type="password"
@@ -63,13 +60,7 @@ export default function RegisterPage() {
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      <button
-        className="
-          border
-          px-4
-          py-2
-          disabled:opacity-50
-        "
+      <Button
         onClick={handleRegister}
         disabled={loading}
       >
@@ -78,7 +69,7 @@ export default function RegisterPage() {
             ? "Registering..."
             : "Register"
         }
-      </button>
+      </Button>
     </div>
   )
 }

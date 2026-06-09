@@ -8,6 +8,9 @@ import {
 import type { Group } from "../types/group"
 
 import { Link } from "react-router-dom"
+import Button from "../components/Button"
+import Input from "../components/Input"
+import ErrorMessage from "../components/ErrorMessage"
 
 export default function DashboardPage() {
 
@@ -73,16 +76,9 @@ export default function DashboardPage() {
 
       <div className="mb-6">
 
-        {
-          error && (
-            <p className="text-red-600 mb-2">
-              {error}
-            </p>
-          )
-        }
+        <ErrorMessage message={error} />
 
-        <input
-          className="border p-2 mr-2"
+        <Input
           placeholder="Group name"
           value={newGroupName}
           disabled={loading}
@@ -91,13 +87,7 @@ export default function DashboardPage() {
           }
         />
 
-        <button
-          className="
-            border
-            px-4
-            py-2
-            disabled:opacity-50
-          "
+        <Button
           onClick={createGroup}
           disabled={loading}
         >
@@ -106,7 +96,7 @@ export default function DashboardPage() {
               ? "Creating..."
               : "Create Group"
           }
-        </button>
+        </Button>
 
       </div>
 

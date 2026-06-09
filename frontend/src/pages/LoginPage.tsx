@@ -2,6 +2,9 @@ import { useState } from "react"
 import { login as loginApi } from "../api/auth"
 import { useAuth } from "../contexts/AuthContext"
 import { useNavigate } from "react-router-dom"
+import Button from "../components/Button"
+import Input from "../components/Input"
+import ErrorMessage from "../components/ErrorMessage"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -43,22 +46,16 @@ export default function LoginPage() {
     <div>
       <h1>Login</h1>
 
-      {
-        error && (
-          <p className="text-red-600">
-            {error}
-          </p>
-        )
-      }
+      <ErrorMessage message={error} />
 
-      <input
+      <Input
         disabled={loading}
         placeholder="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
 
-      <input
+      <Input
         disabled={loading}
         placeholder="password"
         type="password"
@@ -66,13 +63,7 @@ export default function LoginPage() {
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      <button
-        className="
-          border
-          px-4
-          py-2
-          disabled:opacity-50
-        "
+      <Button
         onClick={handleLogin}
         disabled={loading}
       >
@@ -81,7 +72,7 @@ export default function LoginPage() {
             ? "Logging in..."
             : "Login"
         }
-      </button>
+      </Button>
     </div>
   )
 }
