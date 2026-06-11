@@ -1,4 +1,10 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
+
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query"
 
 import { useParams } from "react-router-dom"
 
@@ -11,7 +17,11 @@ import {
   createExpense as createExpenseApi,
 } from "../api/expenses"
 
-import { getCurrentUser } from "../api/users"
+// import { getCurrentUser } from "../api/users"
+import {
+  addGroupMember,
+  getGroupMembers,
+} from "../api/groupMembers"
 
 import type { Balance, BalancesResponse } from "../types/balance"
 import type { Settlement, SettlementResponse } from "../types/settlement"
@@ -41,12 +51,6 @@ export default function GroupPage() {
 
   const { groupId } = useParams()
 
-  const [balances, setBalances] =
-    useState<Balance[]>([])
-
-  const [settlements, setSettlements] =
-    useState<Settlement[]>([])
-
   const [description, setDescription] =
     useState("")
 
@@ -57,58 +61,112 @@ export default function GroupPage() {
 
   const [error, setError] = useState("")
 
-  async function fetchBalances() {
+  const [inviteEmail, setInviteEmail] = useState("")
 
-    const data = await getGroupBalances(groupId!)
+  const [inviteError, setInviteError] = useState("")
 
-    setBalances(parseBalances(data))
-  }
+  const {
+    data: balances = [],
+    isLoading: balancesLoading,
+    isError: balancesError,
+  } = useQuery({
+    queryKey: ["balances", groupId],
+    queryFn: async () => {
+      const data = await getGroupBalances(groupId!)
+      return parseBalances(data)
+    },
+    enabled: !!groupId,     // Do not execute the query until groupId exists
+  })
 
-  async function fetchSettlements() {
+  const {
+    data: settlements = [],
+    isLoading: settlementsLoading,
+    isError: settlementsError,
+  } = useQuery({
+    queryKey: ["settlements", groupId],
+    queryFn: async () => {
+      const data = await getGroupSettlements(groupId!)
+      return parseSettlements(data)
+    },
+    enabled: !!groupId,
+  })
 
-    const data = await getGroupSettlements(groupId!)
+  const {
+    data: members = [],
+  } = useQuery({
+    queryKey: ["groupMembers", groupId],
+    queryFn: async () =>
+      getGroupMembers(groupId!),
+    enabled: !!groupId,
+  })
 
-    setSettlements(parseSettlements(data))
-  }
+  const queryClient = useQueryClient()
+
+  const createExpenseMutation = useMutation({
+    mutationFn: createExpenseApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["balances", groupId] })
+      queryClient.invalidateQueries({ queryKey: ["settlements", groupId] })
+    },
+  })
+
+  const inviteMemberMutation = useMutation({
+    mutationFn: (email: string) =>
+      addGroupMember(groupId!, { email }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["groupMembers", groupId],
+      })
+      setInviteEmail("")
+      setInviteError("")
+    },
+  })
 
   async function createExpense() {
-
-    if (!description.trim()) {
-      setError("Description is required")
-      return
-    }
-      
-    const expenseAmount = Number(amount)
-    
-    if (!Number.isFinite(expenseAmount) || expenseAmount <= 0) {
-      setError("Amount must be greater than 0")
-      return
-    }
 
     try {
 
       setError("")
       setLoading(true)
 
-      const user = await getCurrentUser()
+      if (!description.trim()) {
+        setError("Description is required")
+        return
+      }
 
-      await createExpenseApi({
+      const expenseAmount = Number(amount)
+
+      if (
+        !Number.isFinite(expenseAmount)
+        || expenseAmount <= 0
+      ) {
+        setError("Amount must be greater than 0")
+        return
+      }
+
+      if (members.length === 0) {
+        setError("Add members before creating an expense")
+        return
+      }
+
+      const share = expenseAmount / members.length
+
+      const participants = members.map(
+        (member) => ({
+          user_id: member.id,
+          owed_amount: share,
+        }),
+      )
+
+      await createExpenseMutation.mutateAsync({
         group_id: groupId!,
         description,
         amount: expenseAmount,
-        participants: [
-          {
-            user_id: user.id,
-            owed_amount: expenseAmount,
-          },
-        ],
+        participants,
       })
 
       setDescription("")
       setAmount("")
-
-      await fetchBalances()
-      await fetchSettlements()
 
     } catch {
 
@@ -119,17 +177,51 @@ export default function GroupPage() {
       setLoading(false)
 
     }
-
-
-
   }
 
-  useEffect(() => {
+  async function inviteMember() {
 
-    fetchBalances()
-    fetchSettlements()
+    const email = inviteEmail.trim()
 
-  }, [])
+    if (!email) {
+      setInviteError("Email is required")
+      return
+    }
+
+    try {
+
+      setInviteError("")
+      await inviteMemberMutation.mutateAsync(email)
+
+    } catch (err: unknown) {
+
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })
+          .response?.data?.detail
+
+      setInviteError(
+        typeof detail === "string"
+          ? detail
+          : "Failed to invite member",
+      )
+
+    }
+  }
+
+  if (balancesLoading || settlementsLoading) {
+    return
+    (
+      <p>Loading balances and settlements...</p>
+    )
+  }
+
+  if (balancesError || settlementsError) {
+    return (
+      <p className="text-red-600">
+        Failed to load balances or settlements.
+      </p>
+    )
+  }
 
   return (
     <PageContainer>
@@ -176,6 +268,59 @@ export default function GroupPage() {
       <div className="mb-8">
 
         <h2 className="text-2xl font-bold mb-4">
+          Members
+        </h2>
+
+        <div className="space-y-2 mb-4">
+
+          {members.length === 0 && (
+            <p>
+              No members yet.
+            </p>
+          )}
+
+          {members.map((member) => (
+            <Card key={member.id}>
+              {member.email}
+            </Card>
+          ))}
+
+        </div>
+
+        <div className="space-y-2">
+
+          <ErrorMessage message={inviteError} />
+
+          <Input
+            placeholder="Invite member email"
+            value={inviteEmail}
+            disabled={inviteMemberMutation.isPending}
+            onChange={(e) =>
+              setInviteEmail(e.target.value)
+            }
+          />
+
+          <Button
+            onClick={inviteMember}
+            disabled={
+              inviteMemberMutation.isPending
+              || !inviteEmail.trim()
+            }
+          >
+            {
+              inviteMemberMutation.isPending
+                ? "Adding..."
+                : "Add Member"
+            }
+          </Button>
+
+        </div>
+
+      </div>
+
+      <div className="mb-8">
+
+        <h2 className="text-2xl font-bold mb-4">
           Balances
         </h2>
 
@@ -197,7 +342,7 @@ export default function GroupPage() {
 
       </div>
 
-      <div>
+      <div className="mb-8">
 
         <h2 className="text-2xl font-bold mb-4">
           Settlements
@@ -222,6 +367,18 @@ export default function GroupPage() {
           ))}
 
         </div>
+
+      </div>
+
+      <div>
+
+        <h2 className="text-2xl font-bold mb-4">
+          Expense details
+        </h2>
+
+        <p>
+          No expenses yet.
+        </p>
 
       </div>
 

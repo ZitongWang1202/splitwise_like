@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from uuid import UUID
+from pydantic import EmailStr
 
 
 class GroupCreate(BaseModel):
@@ -13,3 +14,6 @@ class GroupResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class AddGroupMemberRequest(BaseModel):
+    email: EmailStr

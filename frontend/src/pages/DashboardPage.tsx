@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react"
 
 import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query"
+
+import {
   getGroups,
   createGroup as createGroupApi,
 } from "../api/groups"
@@ -16,20 +22,29 @@ import Card from "../components/Card"
 
 export default function DashboardPage() {
 
-  const [groups, setGroups] = useState<Group[]>([])
-
   const [newGroupName, setNewGroupName] = useState("")
 
   const [loading, setLoading] = useState(false)
 
   const [error, setError] = useState("")
 
-  async function fetchGroups() {
+  const {
+    data: groups = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["groups"],
+    queryFn: getGroups,
+  })
 
-    const data = await getGroups()
+  const queryClient = useQueryClient()
 
-    setGroups(data)
-  }
+  const createGroupMutation = useMutation({
+    mutationFn: createGroupApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["groups"] })
+    },
+  })
 
   async function createGroup() {
 
@@ -43,13 +58,11 @@ export default function DashboardPage() {
       setError("")
       setLoading(true)
 
-      await createGroupApi({
+      await createGroupMutation.mutateAsync({
         name: newGroupName,
       })
 
       setNewGroupName("")
-
-      await fetchGroups()
 
     } catch {
 
@@ -61,13 +74,19 @@ export default function DashboardPage() {
 
     }
 
-
-
   }
 
-  useEffect(() => {
-    fetchGroups()
-  }, [])
+  if (isLoading) {
+    return <p>Loading groups...</p>
+  }
+  
+  if (isError) {
+    return (
+      <p className="text-red-600">
+        Failed to load groups.
+      </p>
+    )
+  }
 
   return (
     <PageContainer>
