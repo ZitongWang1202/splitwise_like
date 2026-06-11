@@ -23,12 +23,20 @@ import {
   getGroupMembers,
 } from "../api/groupMembers"
 
+import { queryKeys } from "../api/queryKeys"
+
 import type { Balance, BalancesResponse } from "../types/balance"
 import type { Settlement, SettlementResponse } from "../types/settlement"
 import Button from "../components/Button"
 import Input from "../components/Input"
 import ErrorMessage from "../components/ErrorMessage"
 import PageContainer from "../components/PageContainer"
+import PageTitle from "../components/PageTitle"
+import Section from "../components/Section"
+import FormStack from "../components/FormStack"
+import CheckboxField from "../components/CheckboxField"
+import EmptyState from "../components/EmptyState"
+import ItemList from "../components/ItemList"
 import Card from "../components/Card"
 
 function parseBalances(data: BalancesResponse): Balance[] {
@@ -57,6 +65,9 @@ export default function GroupPage() {
   const [amount, setAmount] =
     useState("")
 
+  const [selectedParticipants, setSelectedParticipants] =
+    useState<string[]>([])
+
   const [loading, setLoading] = useState(false)
 
   const [error, setError] = useState("")
@@ -70,7 +81,7 @@ export default function GroupPage() {
     isLoading: balancesLoading,
     isError: balancesError,
   } = useQuery({
-    queryKey: ["balances", groupId],
+    queryKey: queryKeys.balances.byGroup(groupId!),
     queryFn: async () => {
       const data = await getGroupBalances(groupId!)
       return parseBalances(data)
@@ -83,7 +94,7 @@ export default function GroupPage() {
     isLoading: settlementsLoading,
     isError: settlementsError,
   } = useQuery({
-    queryKey: ["settlements", groupId],
+    queryKey: queryKeys.settlements.byGroup(groupId!),
     queryFn: async () => {
       const data = await getGroupSettlements(groupId!)
       return parseSettlements(data)
@@ -93,8 +104,10 @@ export default function GroupPage() {
 
   const {
     data: members = [],
+    isLoading: membersLoading,
+    isError: membersError,
   } = useQuery({
-    queryKey: ["groupMembers", groupId],
+    queryKey: queryKeys.groupMembers.byGroup(groupId!),
     queryFn: async () =>
       getGroupMembers(groupId!),
     enabled: !!groupId,
@@ -105,8 +118,12 @@ export default function GroupPage() {
   const createExpenseMutation = useMutation({
     mutationFn: createExpenseApi,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["balances", groupId] })
-      queryClient.invalidateQueries({ queryKey: ["settlements", groupId] })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.balances.byGroup(groupId!),
+      })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.settlements.byGroup(groupId!),
+      })
     },
   })
 
@@ -115,7 +132,7 @@ export default function GroupPage() {
       addGroupMember(groupId!, { email }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["groupMembers", groupId],
+        queryKey: queryKeys.groupMembers.byGroup(groupId!),
       })
       setInviteEmail("")
       setInviteError("")
@@ -144,19 +161,22 @@ export default function GroupPage() {
         return
       }
 
-      if (members.length === 0) {
-        setError("Add members before creating an expense")
+      if (selectedParticipants.length === 0) {
+        setError("Select at least one participant")
         return
       }
 
-      const share = expenseAmount / members.length
+      const share =
+        expenseAmount /
+        selectedParticipants.length
 
-      const participants = members.map(
-        (member) => ({
-          user_id: member.id,
-          owed_amount: share,
-        }),
-      )
+      const participants =
+        selectedParticipants.map(
+          (userId) => ({
+            user_id: userId,
+            owed_amount: share,
+          }),
+        )
 
       await createExpenseMutation.mutateAsync({
         group_id: groupId!,
@@ -208,49 +228,115 @@ export default function GroupPage() {
     }
   }
 
-  if (balancesLoading || settlementsLoading) {
-    return
-    (
-      <p>Loading balances and settlements...</p>
+  if (membersLoading || balancesLoading || settlementsLoading) {
+    return (
+      <PageContainer>
+        <p>Loading members, balances, and settlements...</p>
+      </PageContainer>
     )
   }
 
-  if (balancesError || settlementsError) {
+  if (membersError || balancesError || settlementsError) {
     return (
-      <p className="text-red-600">
-        Failed to load balances or settlements.
-      </p>
+      <PageContainer>
+        <p className="text-red-600">
+          Failed to load members, balances, or settlements.
+        </p>
+      </PageContainer>
     )
   }
 
   return (
     <PageContainer>
 
-      <h1 className="text-3xl font-bold mb-6">
-        Group Details
-      </h1>
+      <PageTitle>Group Details</PageTitle>
 
-      <div className="mb-8 space-y-2">
+      <Section title="Members">
+        <ItemList>
+          {members.map((member) => (
+            <div key={member.id}>
+              {member.email}
+            </div>
+          ))}
+        </ItemList>
 
-        <ErrorMessage message={error} />
+        <Section title="Invite Member" nested>
+          <FormStack>
+            <ErrorMessage message={inviteError} />
 
-        <Input
-          placeholder="Description"
-          value={description}
-          disabled={loading}
-          onChange={(e) =>
-            setDescription(e.target.value)
-          }
-        />
+            <Input
+              placeholder="Email"
+              value={inviteEmail}
+              disabled={inviteMemberMutation.isPending}
+              onChange={(e) =>
+                setInviteEmail(e.target.value)
+              }
+            />
 
-        <Input
-          placeholder="Amount"
-          value={amount}
-          disabled={loading}
-          onChange={(e) =>
-            setAmount(e.target.value)
-          }
-        />
+            <Button
+              onClick={inviteMember}
+              disabled={
+                inviteMemberMutation.isPending
+                || !inviteEmail.trim()
+              }
+            >
+              {
+                inviteMemberMutation.isPending
+                  ? "Inviting..."
+                  : "Invite"
+              }
+            </Button>
+          </FormStack>
+        </Section>
+      </Section>
+
+      <Section title="Add Expense">
+        <FormStack>
+          <ErrorMessage message={error} />
+
+          <Input
+            placeholder="Description"
+            value={description}
+            disabled={loading}
+            onChange={(e) =>
+              setDescription(e.target.value)
+            }
+          />
+
+          <Input
+            placeholder="Amount"
+            value={amount}
+            disabled={loading}
+            onChange={(e) =>
+              setAmount(e.target.value)
+            }
+          />
+        </FormStack>
+
+        <Section title="Expense Participants" nested>
+          {members.length === 0 && (
+            <EmptyState>No members to select.</EmptyState>
+          )}
+
+          <FormStack>
+            {members.map((member) => (
+              <CheckboxField
+                key={member.id}
+                label={member.email}
+                checked={selectedParticipants.includes(
+                  member.id,
+                )}
+                onChange={() =>
+                  setSelectedParticipants((prev) =>
+                    prev.includes(member.id)
+                      ? prev.filter((id) => id !== member.id)
+                      : [...prev, member.id],
+                  )
+                }
+              />
+            ))}
+          </FormStack>
+        </Section>
 
         <Button
           onClick={createExpense}
@@ -262,100 +348,28 @@ export default function GroupPage() {
               : "Add Expense"
           }
         </Button>
+      </Section>
 
-      </div>
+      <Section title="Balances">
+        {balances.length === 0 && (
+          <EmptyState>No balances yet.</EmptyState>
+        )}
 
-      <div className="mb-8">
-
-        <h2 className="text-2xl font-bold mb-4">
-          Members
-        </h2>
-
-        <div className="space-y-2 mb-4">
-
-          {members.length === 0 && (
-            <p>
-              No members yet.
-            </p>
-          )}
-
-          {members.map((member) => (
-            <Card key={member.id}>
-              {member.email}
-            </Card>
-          ))}
-
-        </div>
-
-        <div className="space-y-2">
-
-          <ErrorMessage message={inviteError} />
-
-          <Input
-            placeholder="Invite member email"
-            value={inviteEmail}
-            disabled={inviteMemberMutation.isPending}
-            onChange={(e) =>
-              setInviteEmail(e.target.value)
-            }
-          />
-
-          <Button
-            onClick={inviteMember}
-            disabled={
-              inviteMemberMutation.isPending
-              || !inviteEmail.trim()
-            }
-          >
-            {
-              inviteMemberMutation.isPending
-                ? "Adding..."
-                : "Add Member"
-            }
-          </Button>
-
-        </div>
-
-      </div>
-
-      <div className="mb-8">
-
-        <h2 className="text-2xl font-bold mb-4">
-          Balances
-        </h2>
-
-        <div className="space-y-2">
-
-          {balances.length === 0 && (
-            <p>
-              No balances yet.
-            </p>
-          )}
-
+        <FormStack>
           {balances.map((balance) => (
             <Card key={balance.user_id}>
               {balance.email}: {balance.balance}
             </Card>
           ))}
+        </FormStack>
+      </Section>
 
-        </div>
+      <Section title="Settlements">
+        {settlements.length === 0 && (
+          <EmptyState>No settlements yet.</EmptyState>
+        )}
 
-      </div>
-
-      <div className="mb-8">
-
-        <h2 className="text-2xl font-bold mb-4">
-          Settlements
-        </h2>
-
-        <div className="space-y-2">
-
-          {settlements.length === 0 && (
-            <p>
-              No settlements yet.
-            </p>
-          )}
-
+        <FormStack>
           {settlements.map((settlement, index) => (
             <Card key={index}>
               {settlement.from_user}
@@ -365,22 +379,8 @@ export default function GroupPage() {
               {settlement.amount}
             </Card>
           ))}
-
-        </div>
-
-      </div>
-
-      <div>
-
-        <h2 className="text-2xl font-bold mb-4">
-          Expense details
-        </h2>
-
-        <p>
-          No expenses yet.
-        </p>
-
-      </div>
+        </FormStack>
+      </Section>
 
     </PageContainer>
   )

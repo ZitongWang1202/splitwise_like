@@ -5,6 +5,8 @@ import Button from "../components/Button"
 import Input from "../components/Input"
 import ErrorMessage from "../components/ErrorMessage"
 import PageContainer from "../components/PageContainer"
+import PageTitle from "../components/PageTitle"
+import FormStack from "../components/FormStack"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
@@ -42,11 +44,9 @@ export default function RegisterPage() {
 
   return (
     <PageContainer>
-      <h1 className="text-3xl font-bold mb-6">
-        Register
-      </h1>
+      <PageTitle>Register</PageTitle>
 
-      <div className="mb-8 space-y-2">
+      <FormStack>
         <ErrorMessage message={error} />
 
         <Input
@@ -74,7 +74,7 @@ export default function RegisterPage() {
               : "Register"
           }
         </Button>
-      </div>
+      </FormStack>
     </PageContainer>
   )
 }

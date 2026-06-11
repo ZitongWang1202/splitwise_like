@@ -6,6 +6,8 @@ import Button from "../components/Button"
 import Input from "../components/Input"
 import ErrorMessage from "../components/ErrorMessage"
 import PageContainer from "../components/PageContainer"
+import PageTitle from "../components/PageTitle"
+import FormStack from "../components/FormStack"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -45,11 +47,9 @@ export default function LoginPage() {
 
   return (
     <PageContainer>
-      <h1 className="text-3xl font-bold mb-6">
-        Login
-      </h1>
+      <PageTitle>Login</PageTitle>
 
-      <div className="mb-8 space-y-2">
+      <FormStack>
         <ErrorMessage message={error} />
 
         <Input
@@ -77,7 +77,7 @@ export default function LoginPage() {
               : "Login"
           }
         </Button>
-      </div>
+      </FormStack>
     </PageContainer>
   )
 }

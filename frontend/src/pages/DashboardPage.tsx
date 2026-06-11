@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import {
   useQuery,
@@ -11,6 +11,8 @@ import {
   createGroup as createGroupApi,
 } from "../api/groups"
 
+import { queryKeys } from "../api/queryKeys"
+
 import type { Group } from "../types/group"
 
 import { Link } from "react-router-dom"
@@ -18,6 +20,10 @@ import Button from "../components/Button"
 import Input from "../components/Input"
 import ErrorMessage from "../components/ErrorMessage"
 import PageContainer from "../components/PageContainer"
+import PageTitle from "../components/PageTitle"
+import Section from "../components/Section"
+import FormStack from "../components/FormStack"
+import EmptyState from "../components/EmptyState"
 import Card from "../components/Card"
 
 export default function DashboardPage() {
@@ -32,8 +38,8 @@ export default function DashboardPage() {
     data: groups = [],
     isLoading,
     isError,
-  } = useQuery({
-    queryKey: ["groups"],
+  } = useQuery<Group[]>({
+    queryKey: queryKeys.groups.all,
     queryFn: getGroups,
   })
 
@@ -42,7 +48,7 @@ export default function DashboardPage() {
   const createGroupMutation = useMutation({
     mutationFn: createGroupApi,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["groups"] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups.all })
     },
   })
 
@@ -77,64 +83,60 @@ export default function DashboardPage() {
   }
 
   if (isLoading) {
-    return <p>Loading groups...</p>
+    return (
+      <PageContainer>
+        <p>Loading groups...</p>
+      </PageContainer>
+    )
   }
-  
+
   if (isError) {
     return (
-      <p className="text-red-600">
-        Failed to load groups.
-      </p>
+      <PageContainer>
+        <p className="text-red-600">
+          Failed to load groups.
+        </p>
+      </PageContainer>
     )
   }
 
   return (
     <PageContainer>
 
-      <h1 className="text-3xl font-bold mb-6">
-        Dashboard
-      </h1>
+      <PageTitle>Dashboard</PageTitle>
 
-      <div className="mb-8 space-y-2">
+      <Section title="Create Group">
+        <FormStack>
+          <ErrorMessage message={error} />
 
-        <ErrorMessage message={error} />
+          <Input
+            placeholder="Group name"
+            value={newGroupName}
+            disabled={loading}
+            onChange={(e) =>
+              setNewGroupName(e.target.value)
+            }
+          />
 
-        <Input
-          placeholder="Group name"
-          value={newGroupName}
-          disabled={loading}
-          onChange={(e) =>
-            setNewGroupName(e.target.value)
-          }
-        />
+          <Button
+            onClick={createGroup}
+            disabled={loading}
+          >
+            {
+              loading
+                ? "Creating..."
+                : "Create Group"
+            }
+          </Button>
+        </FormStack>
+      </Section>
 
-        <Button
-          onClick={createGroup}
-          disabled={loading}
-        >
-          {
-            loading
-              ? "Creating..."
-              : "Create Group"
-          }
-        </Button>
+      <Section title="Your Groups">
+        {groups.length === 0 && (
+          <EmptyState>No groups yet.</EmptyState>
+        )}
 
-      </div>
-
-      <div>
-
-        <h2 className="text-2xl font-bold mb-4">
-          Your Groups
-        </h2>
-
-        <div className="space-y-2">
-
-          {groups.length === 0 && (
-            <p>
-              No groups yet.
-            </p>
-          )}
-
+        <FormStack>
           {groups.map((group) => (
             <Card key={group.id}>
               <Link
@@ -145,10 +147,8 @@ export default function DashboardPage() {
               </Link>
             </Card>
           ))}
-
-        </div>
-
-      </div>
+        </FormStack>
+      </Section>
 
     </PageContainer>
   )

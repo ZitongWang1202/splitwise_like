@@ -1,4 +1,5 @@
 import apiClient from "./client"
+import type { GroupMember } from "../types/member"
 
 export type AddGroupMemberRequest = {
   email: string
@@ -6,8 +7,8 @@ export type AddGroupMemberRequest = {
 
 export async function getGroupMembers(
   groupId: string,
-) {
-  const response = await apiClient.get(
+): Promise<GroupMember[]> {
+  const response = await apiClient.get<GroupMember[]>(
     `/groups/${groupId}/members`,
   )
 
