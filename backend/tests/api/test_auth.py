@@ -11,6 +11,9 @@ def test_register_user():
         }
     )
 
+    # print(response.status_code)
+    # print(response.json())
+
     assert response.status_code == 200
 
     data = response.json()

@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy import create_engine
 
 from sqlalchemy.orm import sessionmaker
@@ -26,8 +28,14 @@ TestingSessionLocal = sessionmaker(
 )
 
 
+if os.path.exists("test.db"):
+    os.remove("test.db")
+
 Base.metadata.create_all(bind=engine)
 
+# @pytest.fixture(autouse=True)
+# def reset_database():
+#     yield
 
 def override_get_db():
 
