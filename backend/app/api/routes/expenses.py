@@ -13,6 +13,7 @@ from app.api.dependencies import (
 
 from app.models.user import User
 
+from app.core.exceptions import ForbiddenError
 from app.schemas.expense import (
     ExpenseCreate,
     ExpenseResponse
@@ -45,6 +46,13 @@ def create_expense(
             data.description,
             data.amount,
             data.participants
+        )
+
+    except ForbiddenError as e:
+
+        raise HTTPException(
+            status_code=403,
+            detail=str(e)
         )
 
     except ValueError as e:

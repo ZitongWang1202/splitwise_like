@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import ForbiddenError
 from app.repositories.group_repository import GroupRepository
 from app.repositories.user_repository import UserRepository
 
@@ -33,11 +34,33 @@ class GroupService:
         )
 
     @staticmethod
+    def require_group_member(
+        db: Session,
+        group_id: UUID,
+        user_id: UUID,
+    ):
+
+        if not GroupRepository.is_group_member(
+            db,
+            group_id,
+            user_id,
+        ):
+            raise ForbiddenError(
+                "Not a member of this group"
+            )
+
+    @staticmethod
     def get_group_members(
         db: Session,
         group_id: UUID,
         user_id: UUID,
     ):
+
+        GroupService.require_group_member(
+            db,
+            group_id,
+            user_id,
+        )
 
         return GroupRepository.get_group_members(
             db,
@@ -52,14 +75,11 @@ class GroupService:
         email: str,
     ):
 
-        if not GroupRepository.is_group_member(
+        GroupService.require_group_member(
             db,
             group_id,
             user_id,
-        ):
-            raise ValueError(
-                "Not a member of this group"
-            )
+        )
 
         user = UserRepository.get_by_email(
             db,

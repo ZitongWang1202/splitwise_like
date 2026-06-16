@@ -15,6 +15,7 @@ from app.api.dependencies import (
 
 from app.models.user import User
 
+from app.core.exceptions import ForbiddenError
 from app.schemas.group import (
     GroupCreate,
     GroupResponse,
@@ -71,11 +72,21 @@ def get_group_members(
     current_user: User = Depends(get_current_user),
 ):
 
-    return GroupService.get_group_members(
-        db,
-        group_id,
-        current_user.id,
-    )
+    try:
+
+        return GroupService.get_group_members(
+            db,
+            group_id,
+            current_user.id,
+        )
+
+    except ForbiddenError as e:
+
+        raise HTTPException(
+            status_code=403,
+            detail=str(e),
+        )
+
 
 @router.post(
     "/groups/{group_id}/members",
@@ -97,6 +108,13 @@ def add_group_member(
             group_id,
             current_user.id,
             request.email,
+        )
+
+    except ForbiddenError as e:
+
+        raise HTTPException(
+            status_code=403,
+            detail=str(e),
         )
 
     except ValueError as e:

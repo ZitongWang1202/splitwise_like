@@ -3,6 +3,8 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import ForbiddenError
+from app.repositories.group_repository import GroupRepository
 from app.repositories.expense_repository import (
     ExpenseRepository
 )
@@ -28,6 +30,15 @@ class ExpenseService:
 
             raise ValueError(
                 "Participant amounts must equal expense amount"
+            )
+
+        if not GroupRepository.is_group_member(
+            db,
+            group_id,
+            paid_by_user_id,
+        ):
+            raise ForbiddenError(
+                "Not a member of this group"
             )
 
         return ExpenseRepository.create_expense(
