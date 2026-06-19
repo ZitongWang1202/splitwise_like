@@ -18,15 +18,17 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+from app.core.config import settings
 from app.db.base import Base
+from app.models import (  # noqa: F401
+    Expense,
+    ExpenseParticipant,
+    Group,
+    GroupMember,
+    User,
+)
 
-# from app.models.user import User
-# from app.models.group import Group
-# from app.models.group_member import GroupMember
-# from app.models.expense import Expense
-# from app.models.expense_participant import (
-#     ExpenseParticipant
-# )
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 target_metadata = Base.metadata
 

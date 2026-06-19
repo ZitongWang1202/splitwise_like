@@ -1,0 +1,48 @@
+services:
+
+  db:
+    image: postgres:16
+    container_name: splitwise_db
+    restart: always
+
+    env_file:
+      - backend/.env
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: splitwise_backend
+    restart: always
+
+    env_file:
+      - backend/.env
+
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/expense_manager
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - db
+
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build: ./frontend
+    container_name: splitwise_frontend
+    restart: always
+
+    ports:
+      - "5173:5173"
+
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

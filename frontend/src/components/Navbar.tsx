@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 
 import { useAuth } from "../contexts/AuthContext"
 
 export default function Navbar() {
 
-  const { logout } = useAuth()
+  const { token, logout } = useAuth()
+  const location = useLocation()
 
   return (
     <nav
@@ -17,12 +18,26 @@ export default function Navbar() {
       "
     >
       <Link to="/">
-        Splitwise Clone
+        Splitwise
       </Link>
 
-      <button onClick={logout}>
-        Logout
-      </button>
+      {location.pathname === "/login" && (
+        <Link to="/register">
+          Register
+        </Link>
+      )}
+
+      {location.pathname === "/register" && (
+        <Link to="/login">
+          Login
+        </Link>
+      )}
+
+      {token && (
+        <button onClick={logout}>
+          Logout
+        </button>
+      )}
     </nav>
   )
 }

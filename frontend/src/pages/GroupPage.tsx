@@ -166,9 +166,18 @@ export default function GroupPage() {
         return
       }
 
-      const share =
-        expenseAmount /
-        selectedParticipants.length
+      const participantCount = selectedParticipants.length
+      const amountInCents = Math.round(expenseAmount * 100)
+
+      if (amountInCents % participantCount !== 0) {
+        setError(
+          `Cannot split $${expenseAmount.toFixed(2)} equally among ${participantCount} participants. Enter a total that divides evenly to the cent.`,
+        )
+        return
+      }
+
+      const shareInCents = amountInCents / participantCount
+      const share = shareInCents / 100
 
       const participants =
         selectedParticipants.map(
@@ -188,9 +197,17 @@ export default function GroupPage() {
       setDescription("")
       setAmount("")
 
-    } catch {
+    } catch (err: unknown) {
 
-      setError("Failed to add expense")
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })
+          .response?.data?.detail
+
+      setError(
+        typeof detail === "string"
+          ? detail
+          : "Failed to add expense",
+      )
 
     } finally {
 
