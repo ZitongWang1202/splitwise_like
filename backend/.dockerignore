@@ -1,15 +1,25 @@
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
 venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
 .env
+.env.*
 
-.git/
-.idea/
-.vscode/
+.git
+.gitignore
 
-test.db
+tests/
+docs/
+README.md
 
-alembic/versions/__pycache__
+*.db
+htmlcov/
+.coverage
+
+.idea
+.vscode
+.DS_Store
+Thumbs.db

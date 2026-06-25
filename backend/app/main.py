@@ -1,17 +1,23 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.config import settings
 from app.api.routes.auth import router as auth_router
 from app.api.routes.users import router as users_router
 from app.api.routes.groups import router as groups_router
 from app.api.routes.expenses import router as expenses_router
 from app.api.routes.balances import router as balances_router
+from app.api.routes.health import router as health_router
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        origin.strip()
+        for origin in settings.CORS_ORIGINS.split(",")
+        if origin.strip()
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,3 +32,4 @@ app.include_router(users_router)
 app.include_router(groups_router)
 app.include_router(expenses_router)
 app.include_router(balances_router)
+app.include_router(health_router)

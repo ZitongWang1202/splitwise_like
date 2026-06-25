@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
 
+    CORS_ORIGINS: str = "http://localhost:5173"
 
     class Config:
         env_file = ".env"
