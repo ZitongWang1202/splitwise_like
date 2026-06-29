@@ -9,8 +9,8 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build:local-prod
-
+RUN npm run build
+# RUN npm run build:local-prod
 
 # ---------- Runtime Stage ----------
 FROM nginx:alpine
