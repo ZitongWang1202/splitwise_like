@@ -13,14 +13,14 @@ RUN apt-get update && \
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY . .
+
 # Create a non-root user
 RUN useradd -m appuser
 
 RUN chown -R appuser:appuser /app
 
 USER appuser
-
-COPY . .
 
 EXPOSE 8000
 
