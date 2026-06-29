@@ -8,9 +8,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
 
-    CORS_ORIGINS: str = (
-        "http://localhost:5173"
-    )
+    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:4173,https://splitwise-frontend.onrender.com"
 
     model_config = SettingsConfigDict(
         env_file=".env"
