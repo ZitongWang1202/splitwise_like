@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:4173,https://splitwise-frontend-60c3.onrender.com"
 
     model_config = SettingsConfigDict(
-        env_file=".env"
+        env_file=".env",
+        extra="ignore",
     )
 
 
