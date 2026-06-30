@@ -1,5 +1,18 @@
 # Splitwise-like
 
+> A production-ready full-stack expense sharing application inspired by Splitwise, built with **React**, **FastAPI**, **PostgreSQL**, **Docker**, and **GitHub Actions**, and deployed on **Render**.
+
+<p align="center">
+
+<img src="https://img.shields.io/badge/Frontend-React-blue" />
+<img src="https://img.shields.io/badge/Backend-FastAPI-009688" />
+<img src="https://img.shields.io/badge/Database-PostgreSQL-336791" />
+<img src="https://img.shields.io/badge/Docker-Ready-2496ED" />
+<img src="https://img.shields.io/badge/CI-GitHub%20Actions-success" />
+<img src="https://img.shields.io/badge/Deployment-Render-purple" />
+
+</p>
+
 <!-- ## Screenshots
 
 | Dashboard | Group Details |
@@ -13,7 +26,21 @@ https://splitwise-frontend-60c3.onrender.com
 Swagger:
 https://splitwise-backend-0edc.onrender.com/docs
 
-> A production-ready full-stack expense sharing application inspired by Splitwise, built with **React**, **FastAPI**, **PostgreSQL**, **Docker**, and **GitHub Actions**, and deployed on **Render**.
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Project Highlights](#project-highlights)
+- [Local Development](#local-development)
+- [Docker Deployment](#docker-deployment)
+- [CI/CD](#cicd)
+- [Testing](#testing)
+- [API Documentation](#api-documentation)
+- [Repository Structure](#repository-structure)
+- [Future Improvements](#future-improvements)
+- [What I Learned](#what-i-learned)
 
 ---
 
@@ -329,20 +356,20 @@ docker-compose.yml
 
 ### Product
 
-* Edit/Delete expenses
-* Multiple split strategies
-* Multi-currency support
-* Email verification
-* Notifications
+- [ ] Edit/Delete expenses
+- [ ] Multiple split strategies
+- [ ] Multi-currency support
+- [ ] Email verification
+- [ ] Notifications
 
 ### Engineering
 
-* Redis caching
-* Background workers
-* WebSocket real-time updates
-* Kubernetes deployment
-* Prometheus & Grafana
-* Distributed tracing
+- [ ] Redis caching
+- [ ] Background workers
+- [ ] WebSocket real-time updates
+- [ ] Kubernetes deployment
+- [ ] Prometheus & Grafana
+- [ ] Distributed tracing
 
 ---
 
